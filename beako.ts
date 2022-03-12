@@ -2,15 +2,27 @@
 import type { BuildOptions } from 'https://deno.land/x/esbuild@v0.14.11/mod.js'
 import { build, stop } from 'https://deno.land/x/esbuild@v0.14.11/mod.js'
 import { denoModulePlugin } from './deno_module_plugin.ts'
-import info from '../package.json' assert { type: "json" }
 
 const [command, ...args] = Deno.args
 const options = args.filter(arg => arg.startsWith('--'))
 const files = args.filter(arg => !arg.startsWith('--'))
 
+const pairs = [
+  { short: 'o', long: 'outfile', hasValue: true }
+]
+
+for (let i = 0; i < files.length; i++) {
+  const pair = pairs.find(pair => '-' + pair.short === files[i])
+  if (pair) {
+    const [, name] = files.splice(i, pair.hasValue ? 2 : 1)
+    options.push(`--${pair.long}${pair.hasValue ? '=' + name : ''}`)
+  }
+}
+
 switch (command) {
+  case '-v':
   case '--version': {
-    console.info('Beako.js', info.version)
+    console.info('Beako CLI 0.1.0')
     break
   }
 

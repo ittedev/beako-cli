@@ -1,11 +1,11 @@
 // Copyright 2022 itte.dev. All rights reserved. MIT license.
 // deno-lint-ignore-file no-explicit-any
-import { relative, dirname, join, extname } from 'https://deno.land/std@0.121.0/path/mod.ts'
+import { relative, dirname, join, extname } from 'https://deno.land/std@0.129.0/path/mod.ts'
 import { parse } from 'https://deno.land/x/module_url@v0.3.0/mod.ts'
 
 function toLocalPath(src: string) {
-  const { format, name, tag, path, } = parse(src)
-  return join('.cache', 'deps', format, name, tag, path)
+  const { format, name, tag, path } = parse(src)
+  return join('.cache', 'deps', format, tag, name, path)
 }
 
 async function localize(module: any, dst: string) {
@@ -32,11 +32,10 @@ async function localize(module: any, dst: string) {
             const line = cacheTextLines[lineIndex]
             const start = dependency.code.span.start.character
             const end = dependency.code.span.end.character
-            const path = relative(toLocalPath(dependency.code.specifier), dst)
+            const path = relative(dirname(dst), toLocalPath(dependency.code.specifier))
             cacheTextLines[lineIndex] =
               line.slice(0, start) + '"' + path + '"' + line.slice(end)
           })
-          
         await Deno.writeTextFile(dst, cacheTextLines.join('\n'))
       } else {
         throw Error(dirname(dst) + ' is not directory')
@@ -60,7 +59,7 @@ export const denoModulePlugin = {
       } catch {
         return // not deno module
       }
-      const ps = Deno.run({
+      const ps = await Deno.run({
         cmd: ['deno', 'info', '--json', args.path],
         stdout: 'piped',
       })
@@ -74,7 +73,7 @@ export const denoModulePlugin = {
         namespace: 'deno-module'
       }
     })
-    build.onLoad({ filter: /.*/, namespace: 'deno-module' }, 
+    build.onLoad({ filter: /.*/, namespace: 'deno-module' },
       async (args: any) => {
         await Deno.readTextFile(args.path)
         return {
