@@ -4,7 +4,7 @@ Build tools
 ## Install
 
 ```shell
-deno install -fA https://deno.land/x/beako-cli/beako.ts
+deno install -fA https://deno.land/x/beako_cli/beako.ts
 ```
 
 ## Usage
