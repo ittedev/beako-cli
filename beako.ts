@@ -1,6 +1,6 @@
 // Copyright 2022 itte.dev. All rights reserved. MIT license.
-import type { BuildOptions } from 'https://deno.land/x/esbuild@v0.14.11/mod.js'
-import { build, stop } from 'https://deno.land/x/esbuild@v0.14.11/mod.js'
+import type { BuildOptions } from 'https://deno.land/x/esbuild@v0.14.28/mod.js'
+import { build, stop } from 'https://deno.land/x/esbuild@v0.14.28/mod.js'
 import { denoModulePlugin } from './deno_module_plugin.ts'
 
 const [command, ...args] = Deno.args
@@ -27,12 +27,17 @@ switch (command) {
   }
 
   case 'build': {
-    const outfile = options.find(arg => arg.startsWith('--outfile='))?.slice(10) || ''
-    const outdir = options.find(arg => arg.startsWith('--outdir='))?.slice(9) || './dist'
+    const outfile =
+      options.find(arg => arg.startsWith('--outfile='))?.slice(10) || ''
+    const outdir =
+      options.find(arg => arg.startsWith('--outdir='))?.slice(9) || './dist'
     const watch = options.some(arg => arg === '--watch')
     const minify = !options.some(arg => arg === '--no-minify')
     const splitting = !options.some(arg => arg === '--no-splitting')
     const allowOverwrite = !options.some(arg => arg === '--no-allow-overwrite')
+    const sourcemap = options.some(arg => arg === '--map')
+    const chunkNames =
+      !options.some(arg => arg === '--no-hash') ? '[name]-[hash]' : '[name]' 
 
     const esbuildOptions: BuildOptions = {
       entryPoints: files,
@@ -41,12 +46,13 @@ switch (command) {
       splitting,
       minify,
       allowOverwrite,
+      sourcemap,
+      chunkNames,
       plugins: [denoModulePlugin],
       watch: watch ? {
         // deno-lint-ignore no-explicit-any
-        onRebuild(error: any, result: any) {
-          if (error) console.error('watch build failed:', error)
-          else console.info('watch build succeeded:', result)
+        onRebuild(error: any) {
+          if (!error) console.log('Beako CLI: \x1b[32mBuild Succeeded!\x1b[0m')
         }
       } : false
     }
@@ -59,11 +65,10 @@ switch (command) {
     }
 
     build(esbuildOptions).then(() => !watch && stop())
-
     break
   }
 
   default: {
-    console.info('Command', command || '', 'is not found')
+    console.info(`Beako CLI: Command [${command || ''}] is not found`)
   }
 }

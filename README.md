@@ -15,7 +15,7 @@ Output a single file.
 beako build mod.ts -o script.js
 ```
 
-Output splitted files.
+Output splitted files. (Default: `./dist`)
 
 ```shell
 beako build script.ts --outdir=public
