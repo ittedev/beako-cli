@@ -1,7 +1,7 @@
 // Copyright 2022 itte.dev. All rights reserved. MIT license.
 import type { BuildOptions } from 'https://deno.land/x/esbuild@v0.14.28/mod.js'
 import { build, stop } from 'https://deno.land/x/esbuild@v0.14.28/mod.js'
-import { denoModulePlugin } from './deno_module_plugin.ts'
+import { denoPlugin } from "https://deno.land/x/esbuild_deno_loader@0.4.2/mod.ts";
 
 const [command, ...args] = Deno.args
 const options = args.filter(arg => arg.startsWith('--'))
@@ -48,7 +48,7 @@ switch (command) {
       allowOverwrite,
       sourcemap,
       chunkNames,
-      plugins: [denoModulePlugin],
+      plugins: [denoPlugin()],
       watch: watch ? {
         // deno-lint-ignore no-explicit-any
         onRebuild(error: any) {
